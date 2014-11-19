@@ -5,7 +5,7 @@ enum MotorData
   Forward
 };
 
-int l_motor[] = {4, 6, 7};
+int l_motor[] = {7, 6, 4};
 int r_motor[] = {8, 10, 12};
 
 void setup()
@@ -17,8 +17,8 @@ void setup()
   pinMode(r_motor[Speed], OUTPUT);
   pinMode(r_motor[Forward], OUTPUT);
   
-  analogWrite(l_motor[Speed], 200);
-  analogWrite(r_motor[Speed], 200);
+  analogWrite(l_motor[Speed], 100);
+  analogWrite(r_motor[Speed], 100);
   
   digitalWrite(l_motor[Back], LOW);
   digitalWrite(l_motor[Forward], LOW);
