@@ -73,12 +73,15 @@ void setup()
 
 unsigned byte do_calc(int sen_data)
 {
-  int error = sen_data - target;
+  int error = target - sen_data;
+  int result = 0;
   error *= Kp;
-  
+  result = map(error, -400, 600, 0, 255);
+  return result;
 }
 
 void loop()
 {
   lsen.getReading();
+  
 }
