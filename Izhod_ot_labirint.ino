@@ -6,8 +6,10 @@ Speed,
 Forward
 };
 
-#define Kp 1
+#define Kp 0.5
 #define target 400
+#define interval 20
+#define base_speed 100
 
 int l_motor[] = {4, 6, 7};
 int r_motor[] = {8, 10, 12};
@@ -55,33 +57,70 @@ class SenData
     }
 };
 
-SenData lsen;
+SenData *lsen;
 
 void setup()
 {
+  // motors
   for(int i = 0; i < 3; i++)
   {
     pinMode(l_motor[i], OUTPUT);
     pinMode(r_motor[i], OUTPUT);
   }
   
+  digitalWrite(l_motor[Forward], HIGH);
+  digitalWrite(r_motor[Forward], HIGH);
+  digitalWrite(l_motor[Back], LOW);
+  digitalWrite(r_motor[Back], LOW);
+  
+  // sensors
   pinMode(l_sen, INPUT);
   pinMode(r_sen, INPUT);
   
   lsen = new SenData(l_sen);
 }
 
-unsigned byte do_calc(int sen_data)
+int do_calc(int sen_data)
 {
-  int error = target - sen_data;
-  int result = 0;
+  float error = target - sen_data;
   error *= Kp;
-  result = map(error, -400, 600, 0, 255);
-  return result;
+  return (int)error;
 }
+
+int normaliseSpeed(int control_signal)
+{
+  if((control_signal + base_speed) > 255)
+  {
+    control_signal = 255 - base_speed;
+  }
+  else if((control_signal + base_speed) < -255)
+  {
+    control_signal = -255 + base_speed;
+  }
+  
+  return control_signal;
+}
+
+void adjustSpeed(int speed_adjustment)
+{
+  analogWrite(l_motor[Speed], (base_speed + speed_adjustment));
+  analogWrite(r_motor[Speed], (base_speed - speed_adjustment));
+}
+
+int control = 0;
+int senval = 0;
+int speed_delta = 0;
+unsigned long long time = 0;
 
 void loop()
 {
-  lsen.getReading();
-  
+  lsen->getReading();
+  if(time < (millis()))
+  {
+    time = (millis()) + interval;
+    senval = lsen->getReading();
+    control = do_calc(senval);
+    speed_delta = normaliseSpeed(control);
+    adjustSpeed(speed_delta);
+  }
 }
