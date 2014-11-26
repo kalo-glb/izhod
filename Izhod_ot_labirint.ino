@@ -8,11 +8,12 @@ Forward
 
 #define Kp 0.5
 #define target 400
-#define interval 20
+#define interval 100
 #define base_speed 100
+//#define SERDEBUG
 
 int l_motor[] = {4, 6, 7};
-int r_motor[] = {8, 10, 12};
+int r_motor[] = {12, 10, 8};
 
 // sensors
 #define l_sen A1
@@ -57,7 +58,7 @@ class SenData
     }
 };
 
-SenData *lsen;
+SenData lsen(l_sen);
 
 void setup()
 {
@@ -77,7 +78,9 @@ void setup()
   pinMode(l_sen, INPUT);
   pinMode(r_sen, INPUT);
   
-  lsen = new SenData(l_sen);
+#ifdef SERDEBUG
+  Serial.begin(9600);
+#endif
 }
 
 int do_calc(int sen_data)
@@ -89,22 +92,38 @@ int do_calc(int sen_data)
 
 int normaliseSpeed(int control_signal)
 {
+  static const int max_range = 
+    ((255 - base_speed) > base_speed) ? 
+      (base_speed) : 
+      (255 - base_speed);
+      
   if((control_signal + base_speed) > 255)
   {
-    control_signal = 255 - base_speed;
+    control_signal = max_range;
   }
-  else if((control_signal + base_speed) < -255)
+
+  if(control_signal < -base_speed)
   {
-    control_signal = -255 + base_speed;
+    control_signal = -max_range;
   }
+  
+#ifdef SERDEBUG
+  Serial.print(control_signal);
+  Serial.print(" ");
+#endif
   
   return control_signal;
 }
 
 void adjustSpeed(int speed_adjustment)
 {
-  analogWrite(l_motor[Speed], (base_speed + speed_adjustment));
-  analogWrite(r_motor[Speed], (base_speed - speed_adjustment));
+  analogWrite(l_motor[Speed], (base_speed - speed_adjustment));
+  analogWrite(r_motor[Speed], (base_speed + speed_adjustment));
+#ifdef SERDEBUG
+  Serial.print((base_speed - speed_adjustment));
+  Serial.print(" ");
+  Serial.println((base_speed + speed_adjustment));
+#endif
 }
 
 int control = 0;
@@ -114,11 +133,11 @@ unsigned long long time = 0;
 
 void loop()
 {
-  lsen->getReading();
+  lsen.setReading();
   if(time < (millis()))
   {
     time = (millis()) + interval;
-    senval = lsen->getReading();
+    senval = lsen.getReading();
     control = do_calc(senval);
     speed_delta = normaliseSpeed(control);
     adjustSpeed(speed_delta);
