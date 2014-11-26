@@ -6,14 +6,15 @@ Speed,
 Forward
 };
 
-#define Kp 0.5
+#define Kp 0.1
 #define target 400
 #define interval 100
 #define base_speed 100
+#define min_speed 60
 //#define SERDEBUG
 
 int l_motor[] = {4, 6, 7};
-int r_motor[] = {12, 10, 8};
+int r_motor[] = {8, 10, 12};
 
 // sensors
 #define l_sen A1
@@ -117,8 +118,15 @@ int normaliseSpeed(int control_signal)
 
 void adjustSpeed(int speed_adjustment)
 {
-  analogWrite(l_motor[Speed], (base_speed - speed_adjustment));
-  analogWrite(r_motor[Speed], (base_speed + speed_adjustment));
+  int l_spd = base_speed - speed_adjustment;
+  int r_spd = base_speed + speed_adjustment;
+
+  //if (l_spd < min_speed)l_spd = min_speed;
+  //if (r_spd < min_speed)r_spd = min_speed;
+  
+  analogWrite(l_motor[Speed], l_spd);
+  analogWrite(r_motor[Speed], r_spd);
+  
 #ifdef SERDEBUG
   Serial.print((base_speed - speed_adjustment));
   Serial.print(" ");
