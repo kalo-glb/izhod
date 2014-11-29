@@ -8,12 +8,12 @@ Forward
 
 #define Kp 0.15
 #define Kd 0.8
-#define target 500
+#define target 600
 #define interval 100
 #define base_speed 150
 #define min_speed 10
 #define turn_delay 900
-#define left_turn_dist 230
+#define left_turn_dist 250
 //#define SERDEBUG
 
 int l_motor[] = {4, 6, 7};
@@ -153,12 +153,24 @@ void go_forward()
   digitalWrite(r_motor[Back], LOW);
 }
 
+void go_back()
+{
+  analogWrite(l_motor[Speed], base_speed);
+  analogWrite(r_motor[Speed], base_speed);
+  
+  digitalWrite(l_motor[Forward], LOW);
+  digitalWrite(r_motor[Forward], LOW);
+  digitalWrite(l_motor[Back], HIGH);
+  digitalWrite(r_motor[Back], HIGH);
+}
+
 enum State
 {
   Go_Forward,
   Turn_Left,
   Turn_Right,
   Turn_Recovery,
+  Go_Back,
   StateCount
 };
 
@@ -175,10 +187,16 @@ void determine_state()
   if(0 == lock_state)
   {
     prev_state = state;
-    if(LOW == fsen_val)
+    if(Go_Back == prev_state)
     {
       state = Turn_Right;
-      lock_timeout = (millis()) + turn_delay;
+      lock_timeout = (millis()) + turn_delay - 200;
+      lock_state = 1;
+    }
+    else if(LOW == fsen_val)
+    {
+      state = Go_Back;
+      lock_timeout = (millis()) + turn_delay/3;
       lock_state = 1;
     }
     else if(lsen_val < left_turn_dist)
@@ -202,10 +220,15 @@ void determine_state()
   }
   else if(lock_timeout < (millis()))
   {
-    if((Turn_Left == state) || (Turn_Right == state))
+    if(Turn_Left == state)
     {
       state = Turn_Recovery;
       lock_timeout = (millis()) + 2*turn_delay;
+    }
+    else if(Turn_Right == state)
+    {
+      state = Turn_Recovery;
+      lock_timeout = (millis()) + turn_delay;
     }
     else
     {
@@ -250,6 +273,11 @@ void execute_state()
     case Turn_Recovery:
     {
       go_forward();
+      break;
+    }
+    case Go_Back:
+    {
+      go_back();
       break;
     }
     default:
