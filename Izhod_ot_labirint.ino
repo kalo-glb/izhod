@@ -7,12 +7,12 @@ Forward
 };
 
 #define Kp 0.24
-#define Kd 0.7
+#define Kd 0.8
 #define target 550
 #define interval 100
 #define base_speed 150
 #define min_speed 10
-#define turn_delay 700
+#define turn_delay 500
 #define left_turn_dist 350
 //#define SERDEBUG
 
@@ -202,17 +202,6 @@ void determine_state()
     else if(lsen_val < left_turn_dist)
     {
       state = Go_Forward;
-//      if(Go_Forward == prev_state)
-//      {
-//        state = Turn_Recovery;
-//        lock_timeout = (millis()) + turn_delay/1.5;
-//      }
-//      else
-//      {
-//        state = Turn_Left;
-//        lock_timeout = (millis()) + turn_delay + 400;
-//      }
-//      lock_state = 1;
     }
     else 
     {
@@ -221,12 +210,7 @@ void determine_state()
   }
   else if(lock_timeout < (millis()))
   {
-    /*if(Turn_Left == state)
-    {
-      state = Turn_Recovery;
-      lock_timeout = (millis()) + 2*turn_delay;
-    }
-    else */if(Turn_Right == state)
+    if(Turn_Right == state)
     {
       state = Turn_Recovery;
       lock_timeout = (millis()) + 200;
