@@ -7,16 +7,16 @@ Forward
 };
 
 #define Kp 0.24
-#define Kd 0.8
+#define Kd 0.7
 #define target 550
 #define interval 100
-#define base_speed 150
+#define base_speed 165
 #define min_speed 10
 #define turn_delay 500
 #define left_turn_dist 350
 //#define SERDEBUG
 
-int l_motor[] = {4, 6, 7};
+int l_motor[] = {4,  6,  7};
 int r_motor[] = {8, 10, 12};
 
 // sensors
@@ -120,54 +120,27 @@ void adjustSpeed(int speed_adjustment)
 #endif
 }
 
-void turn_right()
+// Do not use this function. Use defines instead
+void motor_control(int l_speed, int r_speed, int lmf, int lmb, int rmf, int rmb)
 {
-  analogWrite(l_motor[Speed], base_speed);
-  analogWrite(r_motor[Speed], base_speed);
+  analogWrite(l_motor[Speed], l_speed);
+  analogWrite(r_motor[Speed], r_speed);
     
-  digitalWrite(l_motor[Forward], HIGH);
-  digitalWrite(r_motor[Forward], LOW);
-  digitalWrite(l_motor[Back], LOW);
-  digitalWrite(r_motor[Back], HIGH);
+  digitalWrite(l_motor[Forward], lmf);
+  digitalWrite(r_motor[Forward], rmf);
+  digitalWrite(l_motor[Back], lmb);
+  digitalWrite(r_motor[Back], rmb);
 }
 
-void turn_left()
-{
-  analogWrite(l_motor[Speed], base_speed);
-  analogWrite(r_motor[Speed], base_speed);
-  
-  digitalWrite(l_motor[Forward], LOW);
-  digitalWrite(r_motor[Forward], HIGH);
-  digitalWrite(l_motor[Back], HIGH);
-  digitalWrite(r_motor[Back], LOW);
-}
-
-void go_forward()
-{
-  analogWrite(l_motor[Speed], base_speed);
-  analogWrite(r_motor[Speed], base_speed);
-  
-  digitalWrite(l_motor[Forward], HIGH);
-  digitalWrite(r_motor[Forward], HIGH);
-  digitalWrite(l_motor[Back], LOW);
-  digitalWrite(r_motor[Back], LOW);
-}
-
-void go_back()
-{
-  analogWrite(l_motor[Speed], base_speed);
-  analogWrite(r_motor[Speed], base_speed);
-  
-  digitalWrite(l_motor[Forward], LOW);
-  digitalWrite(r_motor[Forward], LOW);
-  digitalWrite(l_motor[Back], HIGH);
-  digitalWrite(r_motor[Back], HIGH);
-}
+#define turn_right() motor_control(base_speed, base_speed, HIGH, LOW, LOW, HIGH)
+#define turn_left() motor_control(base_speed, base_speed, LOW, HIGH, HIGH, LOW)
+#define go_forward() motor_control(base_speed, base_speed, HIGH, LOW, HIGH, LOW)
+#define go_back() motor_control(base_speed, base_speed, LOW, HIGH, LOW, HIGH)
 
 enum State
 {
   Go_Forward,
-  Turn_Left,
+
   Turn_Right,
   Turn_Recovery,
   Go_Back,
@@ -243,11 +216,6 @@ void execute_state()
         control = do_calc(senval);
         adjustSpeed(control);
       }
-      break;
-    }
-    case Turn_Left:
-    {
-      turn_left();
       break;
     }
     case Turn_Right:
